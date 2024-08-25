@@ -1,0 +1,127 @@
+{% extends "base.html" %} {% block title %}Admin Dashboard - Grimvault{%
+endblock %} {% block content %}
+<div class="container">
+    <h1>Admin Dashboard</h1>
+    <table id="user-accounts">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Created At</th>
+                <th>Last Active</th>
+                <th>Storage Used</th>
+                <th>Storage Limit</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in accounts %}
+            <tr>
+                <td>{{ account.username }}</td>
+                <td>{{ account.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ account.last_active.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>
+                    {{ (account.storage_used / 1024 / 1024) | round(2) }} MB
+                </td>
+                <td>
+                    {{ (account.storage_limit / 1024 / 1024 / 1024) | round(2)
+                    }} GB
+                </td>
+                <td>{{ 'Banned' if account.is_banned else 'Active' }}</td>
+                <td>
+                    <button
+                        class="btn btn-secondary update-storage"
+                        data-username="{{ account.username }}"
+                    >
+                        Update Storage
+                    </button>
+                    <button
+                        class="btn btn-warning toggle-ban"
+                        data-username="{{ account.username }}"
+                        data-banned="{{ account.is_banned }}"
+                    >
+                        {{ 'Unban' if account.is_banned else 'Ban' }}
+                    </button>
+                    <button
+                        class="btn btn-danger delete-account"
+                        data-username="{{ account.username }}"
+                    >
+                        Delete
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const userAccounts = document.getElementById("user-accounts");
+
+        userAccounts.addEventListener("click", async (e) => {
+            const username = e.target.dataset.username;
+
+            if (e.target.classList.contains("update-storage")) {
+                const newLimit = prompt("Enter new storage limit in GB:");
+                if (newLimit) {
+                    try {
+                        const response = await axios.post(
+                            '{{ url_for("admin.update_storage") }}',
+                            {
+                                username: username,
+                                new_limit: newLimit * 1024 * 1024 * 1024, // Convert GB to bytes
+                            },
+                        );
+                        alert(response.data.message);
+                        location.reload();
+                    } catch (error) {
+                        alert(
+                            "Failed to update storage: " +
+                                error.response.data.error,
+                        );
+                    }
+                }
+            } else if (e.target.classList.contains("toggle-ban")) {
+                const currentStatus = e.target.dataset.banned === "true";
+                const newStatus = !currentStatus;
+                try {
+                    const response = await axios.post(
+                        '{{ url_for("admin.ban_user_route") }}',
+                        {
+                            username: username,
+                            ban_status: newStatus,
+                        },
+                    );
+                    alert(response.data.message);
+                    location.reload();
+                } catch (error) {
+                    alert(
+                        "Failed to update ban status: " +
+                            error.response.data.error,
+                    );
+                }
+            } else if (e.target.classList.contains("delete-account")) {
+                if (
+                    confirm(
+                        `Are you sure you want to delete the account for ${username}?`,
+                    )
+                ) {
+                    try {
+                        const response = await axios.delete(
+                            `{{ url_for("admin.admin_delete_account", username="") }}${username}`,
+                        );
+                        alert(response.data.message);
+                        location.reload();
+                    } catch (error) {
+                        alert(
+                            "Failed to delete account: " +
+                                error.response.data.error,
+                        );
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

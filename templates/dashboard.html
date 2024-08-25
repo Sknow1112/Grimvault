@@ -1,0 +1,112 @@
+{% extends "base.html" %} {% block title %}Dashboard - Grimvault{% endblock %}
+{% block content %}
+<div class="container">
+    <h1>My Files</h1>
+    <div class="storage-info">
+        <p>
+            Used storage: {{ (used_storage / 1024 / 1024) | round(2) }} MB / {{
+            (storage_limit / 1024 / 1024 / 1024) | round(2) }} GB
+        </p>
+        <progress
+            value="{{ used_storage }}"
+            max="{{ storage_limit }}"
+        ></progress>
+    </div>
+    <div class="file-actions">
+        <form id="upload-form" enctype="multipart/form-data">
+            <input type="file" id="file-input" name="file" required />
+            <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
+        <button id="empty-vault" class="btn btn-danger">Empty Vault</button>
+    </div>
+    <ul id="file-list">
+        {% for file in files %}
+        <li>
+            <span>{{ file.filename }}</span>
+            <span>{{ file.size | filesizeformat }}</span>
+            <button
+                class="btn btn-secondary download-btn"
+                data-filename="{{ file.filename }}"
+            >
+                Download
+            </button>
+            <button
+                class="btn btn-danger delete-btn"
+                data-filename="{{ file.filename }}"
+            >
+                Delete
+            </button>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const uploadForm = document.getElementById("upload-form");
+        const emptyVaultBtn = document.getElementById("empty-vault");
+        const fileList = document.getElementById("file-list");
+
+        uploadForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            try {
+                const response = await axios.post(
+                    '{{ url_for("files.upload") }}',
+                    formData,
+                    {
+                        headers: { "Content-Type": "multipart/form-data" },
+                    },
+                );
+                alert(response.data.message);
+                location.reload();
+            } catch (error) {
+                alert("Upload failed: " + error.response.data.error);
+            }
+        });
+
+        emptyVaultBtn.addEventListener("click", async () => {
+            const password = prompt(
+                "Enter your password to confirm emptying your vault:",
+            );
+            if (password) {
+                try {
+                    const response = await axios.post(
+                        '{{ url_for("files.empty") }}',
+                        { password },
+                    );
+                    alert(response.data.message);
+                    location.reload();
+                } catch (error) {
+                    alert(
+                        "Failed to empty vault: " + error.response.data.error,
+                    );
+                }
+            }
+        });
+
+        fileList.addEventListener("click", async (e) => {
+            if (e.target.classList.contains("download-btn")) {
+                const filename = e.target.dataset.filename;
+                window.location.href = `{{ url_for("files.download", filename="") }}${filename}`;
+            } else if (e.target.classList.contains("delete-btn")) {
+                const filename = e.target.dataset.filename;
+                if (confirm(`Are you sure you want to delete ${filename}?`)) {
+                    try {
+                        const response = await axios.delete(
+                            `{{ url_for("files.delete", filename="") }}${filename}`,
+                        );
+                        alert(response.data.message);
+                        e.target.closest("li").remove();
+                    } catch (error) {
+                        alert(
+                            "Failed to delete file: " +
+                                error.response.data.error,
+                        );
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

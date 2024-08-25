@@ -1,0 +1,23 @@
+{% extends "base.html" %} {% block title %}Welcome to Grimvault{% endblock %} {%
+block content %}
+<div class="container">
+    <h1>Welcome to Grimvault</h1>
+    <p>42hr encrypted cloud storage for your files.</p>
+    {% if current_user.is_authenticated %}
+    <p>Welcome back, {{ current_user.username }}!</p>
+    {% if current_user.is_admin %}
+    <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-primary"
+        >Go to Admin Dashboard</a
+    >
+    {% else %}
+    <a href="{{ url_for('files.dashboard') }}" class="btn btn-primary"
+        >Go to My Files</a
+    >
+    {% endif %} {% else %}
+    <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Login</a>
+    <a href="{{ url_for('auth.register') }}" class="btn btn-secondary"
+        >Register</a
+    >
+    {% endif %}
+</div>
+{% endblock %}
