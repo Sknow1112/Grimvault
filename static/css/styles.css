@@ -228,6 +228,32 @@ progress::-moz-progress-bar {
     border-radius: 10px;
 }
 
+.warning {
+    color: var(--danger-color);
+    margin-bottom: 10px;
+}
+
+#password-strength {
+    height: 5px;
+    margin-top: 5px;
+    transition: all 0.3s ease;
+}
+
+#password-strength.weak {
+    background-color: #ff4136;
+    width: 33.33%;
+}
+
+#password-strength.medium {
+    background-color: #ffdc00;
+    width: 66.66%;
+}
+
+#password-strength.strong {
+    background-color: #2ecc40;
+    width: 100%;
+}
+
 @media (max-width: 768px) {
     .file-actions {
         flex-direction: column;

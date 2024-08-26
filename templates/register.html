@@ -10,32 +10,25 @@ block content %}
         <div class="form-group">
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required />
+            <div id="password-strength"></div>
         </div>
-        <button type="submit" class="btn btn-primary">Register</button>
+        <div class="form-group">
+            <label for="confirm-password">Confirm Password:</label>
+            <input
+                type="password"
+                id="confirm-password"
+                name="confirm_password"
+                required
+            />
+        </div>
+        <p class="warning">
+            Warning: There is no password recovery option. Please remember your
+            password.
+        </p>
+        <button type="submit" class="btn btn-primary" disabled>Register</button>
     </form>
     <p id="register-message"></p>
 </div>
 {% endblock %} {% block scripts %}
-<script>
-    document
-        .getElementById("register-form")
-        .addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            try {
-                const response = await axios.post(
-                    '{{ url_for("auth.register") }}',
-                    formData,
-                );
-                document.getElementById("register-message").textContent =
-                    response.data.message;
-                setTimeout(() => {
-                    window.location.href = response.data.redirect;
-                }, 2000);
-            } catch (error) {
-                document.getElementById("register-message").textContent =
-                    error.response.data.error;
-            }
-        });
-</script>
+<script src="{{ url_for('static', filename='js/register.js') }}"></script>
 {% endblock %}

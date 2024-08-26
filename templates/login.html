@@ -16,24 +16,5 @@ block content %}
     <p id="login-message"></p>
 </div>
 {% endblock %} {% block scripts %}
-<script>
-    document
-        .getElementById("login-form")
-        .addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            try {
-                const response = await axios.post(
-                    '{{ url_for("auth.login") }}',
-                    formData,
-                );
-                document.getElementById("login-message").textContent =
-                    response.data.message;
-                window.location.href = response.data.redirect;
-            } catch (error) {
-                document.getElementById("login-message").textContent =
-                    error.response.data.error;
-            }
-        });
-</script>
+<script src="{{ url_for('static', filename='js/login.js') }}"></script>
 {% endblock %}

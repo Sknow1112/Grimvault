@@ -53,75 +53,13 @@ endblock %} {% block content %}
             {% endfor %}
         </tbody>
     </table>
+    <a
+        href="{{ url_for('auth.logout') }}"
+        class="btn btn-secondary"
+        id="logout-btn"
+        >Logout</a
+    >
 </div>
 {% endblock %} {% block scripts %}
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const userAccounts = document.getElementById("user-accounts");
-
-        userAccounts.addEventListener("click", async (e) => {
-            const username = e.target.dataset.username;
-
-            if (e.target.classList.contains("update-storage")) {
-                const newLimit = prompt("Enter new storage limit in GB:");
-                if (newLimit) {
-                    try {
-                        const response = await axios.post(
-                            '{{ url_for("admin.update_storage") }}',
-                            {
-                                username: username,
-                                new_limit: newLimit * 1024 * 1024 * 1024, // Convert GB to bytes
-                            },
-                        );
-                        alert(response.data.message);
-                        location.reload();
-                    } catch (error) {
-                        alert(
-                            "Failed to update storage: " +
-                                error.response.data.error,
-                        );
-                    }
-                }
-            } else if (e.target.classList.contains("toggle-ban")) {
-                const currentStatus = e.target.dataset.banned === "true";
-                const newStatus = !currentStatus;
-                try {
-                    const response = await axios.post(
-                        '{{ url_for("admin.ban_user_route") }}',
-                        {
-                            username: username,
-                            ban_status: newStatus,
-                        },
-                    );
-                    alert(response.data.message);
-                    location.reload();
-                } catch (error) {
-                    alert(
-                        "Failed to update ban status: " +
-                            error.response.data.error,
-                    );
-                }
-            } else if (e.target.classList.contains("delete-account")) {
-                if (
-                    confirm(
-                        `Are you sure you want to delete the account for ${username}?`,
-                    )
-                ) {
-                    try {
-                        const response = await axios.delete(
-                            `{{ url_for("admin.admin_delete_account", username="") }}${username}`,
-                        );
-                        alert(response.data.message);
-                        location.reload();
-                    } catch (error) {
-                        alert(
-                            "Failed to delete account: " +
-                                error.response.data.error,
-                        );
-                    }
-                }
-            }
-        });
-    });
-</script>
+<script src="{{ url_for('static', filename='js/admindash.js') }}"></script>
 {% endblock %}

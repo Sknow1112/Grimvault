@@ -4,6 +4,7 @@ from flask_login import LoginManager
 from .config import Config
 import os
 from apscheduler.schedulers.background import BackgroundScheduler
+import logging
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -14,6 +15,10 @@ def create_app():
                 template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'templates'),
                 static_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'static'))
     app.config.from_object(Config)
+
+    # Set up logging
+    logging.basicConfig(filename='grimvault.log', level=logging.INFO,
+                        format='%(asctime)s:%(levelname)s:%(message)s')
 
     db.init_app(app)
     login_manager.init_app(app)
@@ -48,15 +53,15 @@ def create_admin_user():
             if "successfully" in result:
                 admin_user = User.query.filter_by(username=admin_username).first()
                 admin_user.is_admin = True
-                admin_user.storage_limit = 1024 * 1024 * 1024 * 10  # 10 GB for admin
+                admin_user.storage_limit = 0  # Admin has no storage
                 db.session.commit()
-                print(f"Admin user '{admin_username}' created successfully.")
+                logging.info(f"Admin user '{admin_username}' created successfully.")
             else:
-                print(f"Failed to create admin user: {result}")
+                logging.error(f"Failed to create admin user: {result}")
         else:
-            print(f"Admin user '{admin_username}' already exists.")
+            logging.info(f"Admin user '{admin_username}' already exists.")
     else:
-        print("Admin credentials not provided in environment variables.")
+        logging.warning("Admin credentials not provided in environment variables.")
 
 def delete_inactive_users():
     from .models import User
@@ -67,3 +72,4 @@ def delete_inactive_users():
         for user in inactive_users:
             db.session.delete(user)
         db.session.commit()
+        logging.info(f"Deleted {len(inactive_users)} inactive users.")

@@ -12,6 +12,7 @@ from . import db
 from huggingface_hub import hf_hub_download
 import requests
 from dotenv import load_dotenv
+import re
 
 load_dotenv()
 
@@ -169,7 +170,7 @@ def update_storage_limit(username, new_limit):
 
     user.storage_limit = new_limit
     db.session.commit()
-    return f"Storage limit for {username} updated to {new_limit} bytes."
+    return f"Storage limit for {username} updated to {new_limit / (1024 * 1024 * 1024):.2f} GB."
 
 def ban_user(username, ban_status):
     user = User.query.filter_by(username=username).first()
@@ -223,3 +224,20 @@ def record_login_attempt(username, success):
     else:
         lockout_dict[username][0] += 1
         lockout_dict[username][1] = time.time()
+
+def check_password_strength(password):
+    # Check password length
+    if len(password) < 8:
+        return "weak"
+
+    # Check for uppercase, lowercase, digit, and special character
+    if not re.search(r'[A-Z]', password):
+        return "medium"
+    if not re.search(r'[a-z]', password):
+        return "medium"
+    if not re.search(r'\d', password):
+        return "medium"
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+        return "medium"
+
+    return "strong"

@@ -26,9 +26,7 @@
                     <li>
                         <a href="{{ url_for('files.dashboard') }}">Dashboard</a>
                     </li>
-                    {% endif %}
-                    <li><a href="#" id="logout">Logout</a></li>
-                    {% else %}
+                    {% endif %} {% else %}
                     <li><a href="{{ url_for('auth.login') }}">Login</a></li>
                     <li>
                         <a href="{{ url_for('auth.register') }}">Register</a>

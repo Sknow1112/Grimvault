@@ -18,6 +18,12 @@
             <button type="submit" class="btn btn-primary">Upload</button>
         </form>
         <button id="empty-vault" class="btn btn-danger">Empty Vault</button>
+        <a
+            href="{{ url_for('auth.logout') }}"
+            class="btn btn-secondary"
+            id="logout-btn"
+            >Logout</a
+        >
     </div>
     <ul id="file-list">
         {% for file in files %}
@@ -41,72 +47,5 @@
     </ul>
 </div>
 {% endblock %} {% block scripts %}
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const uploadForm = document.getElementById("upload-form");
-        const emptyVaultBtn = document.getElementById("empty-vault");
-        const fileList = document.getElementById("file-list");
-
-        uploadForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            try {
-                const response = await axios.post(
-                    '{{ url_for("files.upload") }}',
-                    formData,
-                    {
-                        headers: { "Content-Type": "multipart/form-data" },
-                    },
-                );
-                alert(response.data.message);
-                location.reload();
-            } catch (error) {
-                alert("Upload failed: " + error.response.data.error);
-            }
-        });
-
-        emptyVaultBtn.addEventListener("click", async () => {
-            const password = prompt(
-                "Enter your password to confirm emptying your vault:",
-            );
-            if (password) {
-                try {
-                    const response = await axios.post(
-                        '{{ url_for("files.empty") }}',
-                        { password },
-                    );
-                    alert(response.data.message);
-                    location.reload();
-                } catch (error) {
-                    alert(
-                        "Failed to empty vault: " + error.response.data.error,
-                    );
-                }
-            }
-        });
-
-        fileList.addEventListener("click", async (e) => {
-            if (e.target.classList.contains("download-btn")) {
-                const filename = e.target.dataset.filename;
-                window.location.href = `{{ url_for("files.download", filename="") }}${filename}`;
-            } else if (e.target.classList.contains("delete-btn")) {
-                const filename = e.target.dataset.filename;
-                if (confirm(`Are you sure you want to delete ${filename}?`)) {
-                    try {
-                        const response = await axios.delete(
-                            `{{ url_for("files.delete", filename="") }}${filename}`,
-                        );
-                        alert(response.data.message);
-                        e.target.closest("li").remove();
-                    } catch (error) {
-                        alert(
-                            "Failed to delete file: " +
-                                error.response.data.error,
-                        );
-                    }
-                }
-            }
-        });
-    });
-</script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}
